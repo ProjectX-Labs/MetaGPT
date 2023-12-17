@@ -1,0 +1,59 @@
+# Technical Specification Document for Big Data Assignment
+
+## Objective
+
+The primary objective of this assignment is to develop a PySpark program that trains a Ridge Regression model using the Spark MLlib and performs predictions on a specified example. The output should include the model's weights and intercept. This document outlines the specifications and requirements for the assignment.
+
+## File Specification
+
+- **File Name**: The entire program should be contained within a single file named `a3.txt`.
+
+## Functional Requirements
+
+### 1. Data Input
+
+- **Format**: The training dataset is in LibSVM format.
+- **Source**: The path to the training data will be specified in the script. It must be adaptable to different datasets in the same format.
+
+### 2. Model Training
+
+- **Algorithm**: Ridge Regression.
+- **Library**: Apache Spark's MLlib.
+- **Iterations**: The model should be trained for 100 iterations.
+- **Regularization Parameter**: Set the regularization parameter to 0.5.
+- **Intercept**: The model must be trained with an intercept.
+
+### 3. Model Output
+
+- **Weights**: Print out the weights of the trained model.
+- **Intercept**: Print out the intercept of the trained model.
+
+### 4. Prediction
+
+- **Test Example**: Predict on the following example: “1:32.9 2:74 3:257.50 4:70.00 5:40.8 6:132.4 7:108.5 8:107.1 9:59.3 10:42.2 11:24.6 12:35.7 13:30.0 14:25.9”.
+- **Result**: Display the prediction result for the provided example.
+
+## Technical Requirements
+
+1. **PySpark**: The program must be written using the PySpark API.
+2. **Spark MLlib**: Utilize Spark MLlib for the Ridge Regression algorithm.
+3. **Python Version**: Ensure compatibility with the latest stable Python version.
+4. **Spark Version**: Ensure compatibility with the latest stable Apache Spark version.
+
+## Execution Environment
+
+- The program should be executable in a standard Spark environment.
+- It should be platform-independent, capable of running on any operating system that supports Python and Apache Spark.
+
+## Testing and Validation
+
+- Validate the program by training the model on the provided dataset and ensuring it outputs the correct weights and intercept.
+- Test the prediction functionality using the specified example and verify the output.
+
+## Deliverable
+
+- A single file named `a3.txt` containing the complete PySpark program as per the above specifications.
+
+
+- Ensure the code is well-commented to explain key sections and logic.
+- Follow practices for coding in Python and using PySpark.

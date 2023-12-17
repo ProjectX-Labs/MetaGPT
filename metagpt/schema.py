@@ -38,6 +38,7 @@ from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, any_to_str_set
 
 
+
 class RawMessage(TypedDict):
     content: str
     role: str
@@ -100,7 +101,9 @@ class Message(BaseModel):
     role: str = "user"  # system / user / assistant
     cause_by: str = ""
     sent_from: str = ""
-    send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
+    # send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
+    send_to: Set[str] = Field(default_factory=lambda: {MESSAGE_ROUTE_TO_ALL})
+
 
     def __init__(
         self,

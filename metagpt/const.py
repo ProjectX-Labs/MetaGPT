@@ -44,6 +44,7 @@ def get_metagpt_root():
 
 METAGPT_ROOT = get_metagpt_root()
 DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
+BEACHHEAD_ROOT = DEFAULT_WORKSPACE_ROOT / "Beachhead"
 
 DATA_PATH = METAGPT_ROOT / "data"
 RESEARCH_PATH = DATA_PATH / "research"
