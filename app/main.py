@@ -44,7 +44,7 @@ from metagpt.roles import (
     QaEngineer,
 )
 from metagpt.team import Team
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 
 app = FastAPI()
 
@@ -79,7 +79,7 @@ async def startup(
     await company.run(n_round=n_round)
 
 def clear_beachhead():
-    BEACHHEAD_PATH = WORKSPACE_ROOT / "Beachhead"
+    BEACHHEAD_PATH = DEFAULT_WORKSPACE_ROOT / "Beachhead"
 
     # Clear the contents if the folder exists, else create it
     if BEACHHEAD_PATH.exists():
