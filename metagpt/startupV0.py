@@ -12,13 +12,13 @@ app = typer.Typer()
 
 @app.command()
 def startup(
-    idea: str = typer.Argument(default="Build a cool talking app in React", help="Your innovative idea, such as 'Create a 2048 game.'"),
+    idea: str = typer.Argument(..., help="Your innovative idea, such as 'Create a 2048 game.'"),
     investment: float = typer.Option(default=3.0, help="Dollar amount to invest in the AI company."),
     n_round: int = typer.Option(default=5, help="Number of rounds for the simulation."),
     code_review: bool = typer.Option(default=True, help="Whether to use code review."),
     run_tests: bool = typer.Option(default=False, help="Whether to enable QA for adding & running tests."),
     implement: bool = typer.Option(default=True, help="Enable or disable code implementation."),
-    project_name: str = typer.Option(default="beachhead", help="Project name set to 'beachhead'."),
+    project_name: str = typer.Option(default="", help="Unique project name, such as 'game_2048'."),
     inc: bool = typer.Option(default=False, help="Incremental mode. Use it to coop with existing repo."),
     project_path: str = typer.Option(
         default="",
@@ -41,8 +41,7 @@ def startup(
     from metagpt.team import Team
 
     # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
-    CONFIG.project_name = "beachhead"  # Setting project name to 'beachhead'
-    CONFIG.project_path = Path.cwd() / "beachhead"  # Setting project path to a 'beachhead' directory in the current working directory
+    CONFIG.project_path = project_path
     if project_path:
         inc = True
         project_name = project_name or Path(project_path).name

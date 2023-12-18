@@ -77,7 +77,7 @@ class WritePRD(Action):
             await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
             bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
             return Message(
-                content=bug_fix.json(),
+                content=bug_fix.model_dump_json(),
                 instruct_content=bug_fix,
                 role="",
                 cause_by=FixBug,
@@ -109,7 +109,7 @@ class WritePRD(Action):
         # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
         # 'publish' message to transition the workflow to the next stage. This design allows room for global
         # optimization in subsequent steps.
-        return ActionOutput(content=change_files.json(), instruct_content=change_files)
+        return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
 
     async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format) -> ActionOutput:
         # sas = SearchAndSummarize()
@@ -135,7 +135,7 @@ class WritePRD(Action):
             CONFIG.project_name = Path(CONFIG.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
         node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, to=format)
-        prd_doc.content = node.instruct_content.json(ensure_ascii=False)
+        prd_doc.content = node.instruct_content.model_dump_json(ensure_ascii=False)
         await self._rename_workspace(node)
         return prd_doc
 
@@ -145,7 +145,7 @@ class WritePRD(Action):
             new_prd_doc = Document(
                 root_path=PRDS_FILE_REPO,
                 filename=FileRepository.new_filename() + ".json",
-                content=prd.instruct_content.json(ensure_ascii=False),
+                content=prd.instruct_content.model_dump_json(),
             )
         elif await self._is_relative(requirement_doc, prd_doc):
             new_prd_doc = await self._merge(requirement_doc, prd_doc)

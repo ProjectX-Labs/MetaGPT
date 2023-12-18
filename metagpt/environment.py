@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.logs import logger
 from metagpt.roles import Role
+from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
 from metagpt.utils.common import is_subscribed
 
@@ -28,9 +29,12 @@ class Environment(BaseModel):
 
     """
 
-    roles: dict[str, Role] = Field(default_factory=dict)
-    members: dict[Role, Set] = Field(default_factory=dict)
-    history: str = Field(default="")  # For debug
+    # roles: dict[str, Role] = Field(default_factory=dict)
+    # members: dict[Role, Set] = Field(default_factory=dict)
+    # history: str = Field(default="")  # For debug
+    roles: dict[str, RoleContext] = Field(default_factory=dict)  # Edit this line.
+    members: dict[RoleContext, Set] = Field(default_factory=dict)  # Edit this line.
+    history: str = Field(default="")
 
     class Config:
         arbitrary_types_allowed = True

@@ -21,7 +21,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Iterable, Set, Type
+from typing import Any, Iterable, Optional, Set, Type
 
 from pydantic import BaseModel, Field
 
@@ -30,6 +30,7 @@ from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
+from metagpt.roles.shared_models import RoleContextBase
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
@@ -91,17 +92,15 @@ class RoleSetting(BaseModel):
         return self.__str__()
 
 
-class RoleContext(BaseModel):
-    """Role Runtime Context"""
+from typing import TYPE_CHECKING
 
-    env: "Environment" = Field(default=None)
-    msg_buffer: MessageQueue = Field(default_factory=MessageQueue)  # Message Buffer with Asynchronous Updates
-    memory: Memory = Field(default_factory=Memory)
-    # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
-    state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
-    todo: Action = Field(default=None)
+if TYPE_CHECKING:
+    from metagpt.environment import Environment
+
+class RoleContext(RoleContextBase):
+    """Role Runtime Context"""
     watch: set[str] = Field(default_factory=set)
-    news: list[Type[Message]] = Field(default=[])
+    news: list[Type[Message]] = Field(default_factory=list)
     react_mode: RoleReactMode = (
         RoleReactMode.REACT
     )  # see `Role._set_react_mode` for definitions of the following two attributes

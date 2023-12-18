@@ -97,7 +97,9 @@ class Message(BaseModel):
 
     id: str  # According to Section 2.2.3.1.1 of RFC 135
     content: str
-    instruct_content: BaseModel = Field(default=None)
+    instruct_content: Optional[BaseModel] = Field(default=None)
+    
+    
     role: str = "user"  # system / user / assistant
     cause_by: str = ""
     sent_from: str = ""
@@ -160,7 +162,8 @@ class Message(BaseModel):
 
     def dump(self) -> str:
         """Convert the object to json string"""
-        return self.json(exclude_none=True)
+        # return self.json(exclude_none=True)
+        return self.model_dump_json(exclude_none=True)
 
     @staticmethod
     def load(val):
