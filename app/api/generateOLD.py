@@ -1,14 +1,9 @@
-# Run uvicorn app.main:app --reload
-
 # generate.py
 import shutil
 import os
 import asyncio
-from typing import Any
-from django import db
-import requests
 from pathlib import Path
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from metagpt.roles import (
     Architect,
@@ -84,44 +79,35 @@ test_file_path = os.path.join(current_script_dir, "../test_idea_files/input.txt"
 print(test_file_path)
 
 
-async def background_generation_process(
-    startup_request: StartupRequest, aisession_id: str
-):
-    await startup(startup_request)
-    beachhead_contents = read_beachhead_contents()
-
-    update_result = await db["aisessions"].update_one(
-        {"_id": aisession_id},  # Assuming aisession_id is the _id in MongoDB
-        {"$set": {"generated_data.code": beachhead_contents}},
-    )
-
-    # Send a webhook notification (example URL and payload)
-    # webhook_url = "https://localhost.com/webhook"
-    webhook_url = "http://localhost:3000/webhook/aisession"
-    payload = {
-        "aisession_id": aisession_id,
-        "status": "Completed",
-        "contents": beachhead_contents,
-    }
-    try:
-        requests.post(webhook_url, json=payload)
-    except Exception as e:
-        print(f"Error sending webhook: {e}")
-
-
 @router.get("/")
-async def generate(
-    aisession_id: str, idea: str, app_details: Any, background_tasks: BackgroundTasks
-):
+async def generate(aisession_id: str, idea: str, app_details: any):
     try:
         generationRequest = StartupRequest(
             idea=idea + app_details,
         )
-        clear_beachhead_contents()
-        # Add to background tasks
-        background_tasks.add_task(
-            background_generation_process, generationRequest, aisession_id
-        )
-        return {"message": "Startup process initiated successfully"}
+        clear_beachhead_contents()  # Clear existing contents before starting
+        await startup(generationRequest)
+        beachhead_contents = read_beachhead_contents()  # Read new contents
+        return {
+            "message": "Startup process initiated successfully",
+            "contents": beachhead_contents,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/test")
+async def generate_default():
+    try:
+        with open(test_file_path, "r") as file:
+            idea = file.read().strip()
+        startup_request = StartupRequest(idea=idea)
+        clear_beachhead_contents()  # Clear existing contents before starting
+        await startup(startup_request)
+        beachhead_contents = read_beachhead_contents()  # Read new contents
+        return {
+            "message": "Startup process initiated successfully with default input",
+            "contents": beachhead_contents,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

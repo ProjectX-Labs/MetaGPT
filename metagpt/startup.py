@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
+import os
 from pathlib import Path
 
 import typer
@@ -10,9 +11,20 @@ from metagpt.config import CONFIG
 app = typer.Typer()
 
 
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+print(current_script_dir)
+
+# Construct the path to the target file
+test_file_path = os.path.join(current_script_dir, '../app/test_idea_files/input.txt')
+print(test_file_path)
+idea = None
+
+with open(test_file_path, "r") as file:
+    idea = file.read().strip()
+
 @app.command()
 def startup(
-    idea: str = typer.Argument(default="Build a cool talking app in React", help="Your innovative idea, such as 'Create a 2048 game.'"),
+    idea: str = typer.Argument(default=idea, help="Your innovative idea, such as 'Create a 2048 game.'"),
     investment: float = typer.Option(default=3.0, help="Dollar amount to invest in the AI company."),
     n_round: int = typer.Option(default=5, help="Number of rounds for the simulation."),
     code_review: bool = typer.Option(default=True, help="Whether to use code review."),

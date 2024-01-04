@@ -128,7 +128,7 @@ class AISession(BaseModel):
     }
 
     # Generation Data
-    generation_data: Dict[GenerationKey, Any] = {
+    generated_code: Dict[GenerationKey, Any] = {
         "input": None,
         "output": None,
     }  # Generation data

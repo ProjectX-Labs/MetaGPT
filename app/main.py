@@ -51,11 +51,11 @@ async def root():
 
 
 # If using terminal to run the server, use the following command:
-# uvicorn app.main:app --host 0.0.0.0 --port 8001
+# 
 
 
 # If running this file directly, start the server.
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("your_app_module:app", host="0.0.0.0", port=8001)
+    uvicorn.run("your_app_module:app", host="0.0.0.0", port=8000)
     

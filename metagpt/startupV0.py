@@ -37,7 +37,7 @@ def startup(
         ProductManager,
         ProjectManager,
         QaEngineer,
-    )
+)
     from metagpt.team import Team
 
     # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
