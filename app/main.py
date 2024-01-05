@@ -1,9 +1,11 @@
 import os
 import logging
+import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api import generate
 from contextlib import asynccontextmanager
+from .websocket_manager import ConnectionManager
 from .database import connect_to_mongo, close_mongo_connection
 
 
@@ -16,6 +18,9 @@ async def lifespan(app: FastAPI):
     # Clean up the ML models and release the resources
     print("Server shutdown")
     await close_mongo_connection()
+
+sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=[])
+manager = ConnectionManager(sio)  # Create an instance of ConnectionManager with the Socket.IO server
 
 
 app = FastAPI(
