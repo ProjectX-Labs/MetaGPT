@@ -46,14 +46,7 @@ class ConnectionManager:
             print(f"Received message from {user_id} in session {session_id}: {message}")
             pass
 
-    # async def broadcast(self, message: str):
-    #     # Send a message to all connected clients
-    #     await self.socket.emit('broadcast_message', message)
 
-    # # Additional functionality for reconnection handling
-    # async def handle_reconnection(self, sid, environ):
-    #     # Logic to handle reconnection - can include re-joining rooms or resynchronizing data
-    #     pass
 
 
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=[])
