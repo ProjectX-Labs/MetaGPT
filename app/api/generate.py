@@ -20,10 +20,13 @@ from metagpt.roles import (
 from metagpt.team import Team
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from ..dependencies import get_current_user_id
+import socketio
 
 router = APIRouter()
 
 
+# router = APIRouter()
 class StartupRequest(BaseModel):
     idea: str
     investment: float = 3.0
@@ -85,7 +88,7 @@ print(test_file_path)
 
 
 async def background_generation_process(
-    startup_request: StartupRequest, aisession_id: str
+    startup_request: StartupRequest, user_id: str, aisession_id: str, sio
 ):
     await startup(startup_request)
     beachhead_contents = read_beachhead_contents()
@@ -95,23 +98,17 @@ async def background_generation_process(
         {"$set": {"generated_data.code": beachhead_contents}},
     )
 
-    # Send a webhook notification (example URL and payload)
-    # webhook_url = "https://localhost.com/webhook"
-    webhook_url = "http://localhost:3000/webhook/aisession"
-    payload = {
-        "aisession_id": aisession_id,
-        "status": "Completed",
-        "contents": beachhead_contents,
-    }
-    try:
-        requests.post(webhook_url, json=payload)
-    except Exception as e:
-        print(f"Error sending webhook: {e}")
+    # Send a socket notification (example URL and payload)
+    await manager.send_update(user_id, aisession_id, message)
 
 
 @router.get("/")
 async def generate(
-    aisession_id: str, idea: str, app_details: Any, background_tasks: BackgroundTasks
+    aisession_id: str,
+    idea: str,
+    app_details: Any,
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_current_user_id),
 ):
     try:
         generationRequest = StartupRequest(
@@ -119,8 +116,12 @@ async def generate(
         )
         clear_beachhead_contents()
         # Add to background tasks
+        background_tasks: BackgroundTasks
         background_tasks.add_task(
-            background_generation_process, generationRequest, aisession_id
+            background_generation_process,
+            generationRequest,
+            user_id,
+            aisession_id,
         )
         return {"message": "Startup process initiated successfully"}
     except Exception as e:

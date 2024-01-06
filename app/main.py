@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api import generate
 from contextlib import asynccontextmanager
 from .websocket_manager import ConnectionManager
+from .socket_config import sio, manager
 from .database import connect_to_mongo, close_mongo_connection
 
 
@@ -19,8 +20,11 @@ async def lifespan(app: FastAPI):
     print("Server shutdown")
     await close_mongo_connection()
 
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=[])
-manager = ConnectionManager(sio)  # Create an instance of ConnectionManager with the Socket.IO server
+
+# sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=[])
+# manager = ConnectionManager(
+#     sio
+# )  # Create an instance of ConnectionManager with the Socket.IO server
 
 
 app = FastAPI(
@@ -36,6 +40,8 @@ app = FastAPI(
     servers=[{"url": "http://localhost:8001", "description": "Metagpt server"}],
 )
 
+app.mount("/", manager.get_app())
+
 origins = ["*"]
 
 app.add_middleware(
@@ -49,18 +55,19 @@ app.add_middleware(
 
 app.include_router(generate.router, prefix="/generate", tags=["generate"])
 
-# Test route 
+
+# Test route
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
 
 # If using terminal to run the server, use the following command:
-# 
+#
 
 
 # If running this file directly, start the server.
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("your_app_module:app", host="0.0.0.0", port=8000)
-    
