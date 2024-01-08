@@ -31,7 +31,7 @@ app = FastAPI(
         "name": "Support Team",
         "email": "info@projectxlabs.co",
     },
-    servers=[{"url": "http://localhost:8001", "description": "Metagpt server"}],
+    servers=[{"url": "http://localhost:8000", "description": "Metagpt server"}],
 )
 
 app.mount("/", manager.get_app())

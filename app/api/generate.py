@@ -94,7 +94,7 @@ async def background_generation_process(
     await manager.send_update(user_id, aisession_id, message)
 
 
-@router.get("/")
+@router.post("/", operation_id="generate")
 async def generate(
     aisession_id: str,
     idea: str,
@@ -115,6 +115,6 @@ async def generate(
             user_id,
             aisession_id,
         )
-        return {"message": "Startup process initiated successfully"}
+        return {"message": "Generation process initiated successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
