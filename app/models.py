@@ -216,3 +216,17 @@ class SessionModel:
 
     async def create_session(self, session_data):
         await self.collection.insert_one(session_data)
+
+
+class StartupRequest(BaseModel):
+    idea: str
+    investment: float = 3.0
+    n_round: int = 5
+    code_review: bool = True
+    run_tests: bool = False
+    implement: bool = True
+    project_name: str = "beachhead"
+    inc: bool = False
+    project_path: str = ""
+    reqa_file: str = ""
+    max_auto_summarize_code: int = -1

@@ -21,24 +21,11 @@ from metagpt.team import Team
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from ..dependencies import get_current_user_id
-import socketio
+from ..models import StartupRequest
+
+from ..socket_config import manager
 
 router = APIRouter()
-
-
-# router = APIRouter()
-class StartupRequest(BaseModel):
-    idea: str
-    investment: float = 3.0
-    n_round: int = 5
-    code_review: bool = True
-    run_tests: bool = False
-    implement: bool = True
-    project_name: str = "beachhead"
-    inc: bool = False
-    project_path: str = ""
-    reqa_file: str = ""
-    max_auto_summarize_code: int = -1
 
 
 async def startup(startup_request: StartupRequest):
@@ -98,6 +85,11 @@ async def background_generation_process(
         {"$set": {"generated_data.code": beachhead_contents}},
     )
 
+    message = {
+        "aisession_id": aisession_id,
+        "status": "Completed",
+        "contents": beachhead_contents,
+    }
     # Send a socket notification (example URL and payload)
     await manager.send_update(user_id, aisession_id, message)
 

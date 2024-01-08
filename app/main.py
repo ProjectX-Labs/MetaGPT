@@ -56,8 +56,41 @@ async def root():
     return {"message": "Hello World"}
 
 
-# If using terminal to run the server, use the following command:
-#
+def get_client_id_by_sid(self, sid):
+    for client_id, client_sid in self.active_connections.items():
+        if client_sid == sid:
+            return client_id
+    return None
+
+
+@sio.event
+async def connect(sid, environ):
+    user_id = environ[
+        "HTTP_USER_ID"
+    ]  # Assuming user_id is passed in the request headers
+    aisession_id = environ.get("HTTP_AISESSION_ID")
+    client_id = user_id + "_" + aisession_id
+
+    manager.active_connections[client_id] = sid
+
+
+# This event is triggered when a client disconnects
+@sio.event
+async def disconnect(sid):
+    # Remove sid from active_connections
+
+    client_id = get_client_id_by_sid(
+        sid
+    )  # Implement this function to map sid to user_id
+    manager.active_connections.pop(user_id, None)
+
+
+# Custom event for receiving a message from the client
+@sio.event
+async def receive_message(sid, data):
+    # Here, 'data' is the message received from the client
+    print(f"Received message from {sid}: {data}")
+    # You can further process this data or send an update to the client or room
 
 
 # If running this file directly, start the server.
