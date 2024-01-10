@@ -34,7 +34,7 @@ app = FastAPI(
     servers=[{"url": "http://localhost:8000", "description": "Metagpt server"}],
 )
 
-app.mount("/", manager.get_app())
+app.mount("/ws", manager.get_app())
 
 origins = ["*"]
 
@@ -82,15 +82,15 @@ async def disconnect(sid):
     client_id = get_client_id_by_sid(
         sid
     )  # Implement this function to map sid to user_id
-    manager.active_connections.pop(user_id, None)
+    manager.active_connections.pop(client_id, None)
 
 
-# Custom event for receiving a message from the client
-@sio.event
-async def receive_message(sid, data):
-    # Here, 'data' is the message received from the client
-    print(f"Received message from {sid}: {data}")
-    # You can further process this data or send an update to the client or room
+# # Custom event for receiving a message from the client
+# @sio.event
+# async def receive_message(sid, data):
+#     # Here, 'data' is the message received from the client
+#     print(f"Received message from {sid}: {data}")
+#     # You can further process this data or send an update to the client or room
 
 
 # If running this file directly, start the server.
