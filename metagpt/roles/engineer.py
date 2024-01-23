@@ -73,7 +73,7 @@ class Engineer(Role):
         profile: str = "Engineer",
         goal: str = "write elegant, readable, extensible, efficient code",
         constraints: str = "the code should conform to standards like google-style and be modular and maintainable. "
-                           "Use same language as user requirement",
+        "Use same language as user requirement",
         n_borg: int = 1,
         use_code_review: bool = False,
     ) -> None:
@@ -110,11 +110,17 @@ class Engineer(Role):
                 coding_context = await action.run()
             await src_file_repo.save(
                 coding_context.filename,
-                dependencies={coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path},
+                dependencies={
+                    coding_context.design_doc.root_relative_path,
+                    coding_context.task_doc.root_relative_path,
+                },
                 content=coding_context.code_doc.content,
             )
             msg = Message(
-                content=coding_context.json(), instruct_content=coding_context, role=self.profile, cause_by=WriteCode
+                content=coding_context.json(),
+                instruct_content=coding_context,
+                role=self.profile,
+                cause_by=WriteCode,
             )
             self._rc.memory.add(msg)
 
@@ -144,13 +150,19 @@ class Engineer(Role):
         )
 
     async def _act_summarize(self):
-        code_summaries_file_repo = CONFIG.git_repo.new_file_repository(CODE_SUMMARIES_FILE_REPO)
-        code_summaries_pdf_file_repo = CONFIG.git_repo.new_file_repository(CODE_SUMMARIES_PDF_FILE_REPO)
+        code_summaries_file_repo = CONFIG.git_repo.new_file_repository(
+            CODE_SUMMARIES_FILE_REPO
+        )
+        code_summaries_pdf_file_repo = CONFIG.git_repo.new_file_repository(
+            CODE_SUMMARIES_PDF_FILE_REPO
+        )
         tasks = []
         src_relative_path = CONFIG.src_workspace.relative_to(CONFIG.git_repo.workdir)
         for todo in self.summarize_todos:
             summary = await todo.run()
-            summary_filename = Path(todo.context.design_filename).with_suffix(".md").name
+            summary_filename = (
+                Path(todo.context.design_filename).with_suffix(".md").name
+            )
             dependencies = {todo.context.design_filename, todo.context.task_filename}
             for filename in todo.context.codes_filenames:
                 rpath = src_relative_path / filename
@@ -168,7 +180,9 @@ class Engineer(Role):
                     dependencies=dependencies,
                 )
             else:
-                await code_summaries_file_repo.delete(filename=Path(todo.context.design_filename).name)
+                await code_summaries_file_repo.delete(
+                    filename=Path(todo.context.design_filename).name
+                )
 
         logger.info(f"--max-auto-summarize-code={CONFIG.max_auto_summarize_code}")
         if not tasks or CONFIG.max_auto_summarize_code == 0:
@@ -183,11 +197,17 @@ class Engineer(Role):
         # This parameter is used for debugging the workflow.
         CONFIG.max_auto_summarize_code -= 1 if CONFIG.max_auto_summarize_code > 0 else 0
         return Message(
-            content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
+            content=json.dumps(tasks),
+            role=self.profile,
+            cause_by=SummarizeCode,
+            send_to=self,
+            sent_from=self,
         )
 
     async def _is_pass(self, summary) -> (str, str):
-        rsp = await self._llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
+        rsp = await self._llm.aask(
+            msg=IS_PASS_PROMPT.format(context=summary), stream=False
+        )
         logger.info(rsp)
         if "YES" in rsp:
             return True, rsp
@@ -195,7 +215,9 @@ class Engineer(Role):
 
     async def _think(self) -> Action | None:
         if not CONFIG.src_workspace:
-            CONFIG.src_workspace = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
+            CONFIG.src_workspace = (
+                CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
+            )
         write_code_filters = any_to_str_set([WriteTasks, SummarizeCode, FixBug])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self._rc.news:
@@ -217,8 +239,12 @@ class Engineer(Role):
     ) -> CodingContext:
         old_code_doc = await src_file_repo.get(filename)
         if not old_code_doc:
-            old_code_doc = Document(root_path=str(src_file_repo.root_path), filename=filename, content="")
-        dependencies = {Path(i) for i in await dependency.get(old_code_doc.root_relative_path)}
+            old_code_doc = Document(
+                root_path=str(src_file_repo.root_path), filename=filename, content=""
+            )
+        dependencies = {
+            Path(i) for i in await dependency.get(old_code_doc.root_relative_path)
+        }
         task_doc = None
         design_doc = None
         for i in dependencies:
@@ -227,21 +253,34 @@ class Engineer(Role):
             elif str(i.parent) == SYSTEM_DESIGN_FILE_REPO:
                 design_doc = await design_file_repo.get(i.name)
         # FIXME: design doc没有加载进来，是None
-        context = CodingContext(filename=filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc)
+        context = CodingContext(
+            filename=filename,
+            design_doc=design_doc,
+            task_doc=task_doc,
+            code_doc=old_code_doc,
+        )
         return context
 
     @staticmethod
-    async def _new_coding_doc(filename, src_file_repo, task_file_repo, design_file_repo, dependency):
+    async def _new_coding_doc(
+        filename, src_file_repo, task_file_repo, design_file_repo, dependency
+    ):
         context = await Engineer._new_coding_context(
             filename, src_file_repo, task_file_repo, design_file_repo, dependency
         )
-        coding_doc = Document(root_path=str(src_file_repo.root_path), filename=filename, content=context.json())
+        coding_doc = Document(
+            root_path=str(src_file_repo.root_path),
+            filename=filename,
+            content=context.json(),
+        )
         return coding_doc
 
     async def _new_code_actions(self, bug_fix=False):
         # Prepare file repos
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
-        changed_src_files = src_file_repo.all_files if bug_fix else src_file_repo.changed_files
+        changed_src_files = (
+            src_file_repo.all_files if bug_fix else src_file_repo.changed_files
+        )
         task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
         changed_task_files = task_file_repo.changed_files
         design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
@@ -255,12 +294,21 @@ class Engineer(Role):
             for task_filename in task_list:
                 old_code_doc = await src_file_repo.get(task_filename)
                 if not old_code_doc:
-                    old_code_doc = Document(root_path=str(src_file_repo.root_path), filename=task_filename, content="")
+                    old_code_doc = Document(
+                        root_path=str(src_file_repo.root_path),
+                        filename=task_filename,
+                        content="",
+                    )
                 context = CodingContext(
-                    filename=task_filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc
+                    filename=task_filename,
+                    design_doc=design_doc,
+                    task_doc=task_doc,
+                    code_doc=old_code_doc,
                 )
                 coding_doc = Document(
-                    root_path=str(src_file_repo.root_path), filename=task_filename, content=context.json()
+                    root_path=str(src_file_repo.root_path),
+                    filename=task_filename,
+                    content=context.json(),
                 )
                 if task_filename in changed_files.docs:
                     logger.warning(
@@ -268,7 +316,9 @@ class Engineer(Role):
                         f"{changed_files.docs[task_filename].json()}"
                     )
                 changed_files.docs[task_filename] = coding_doc
-        self.code_todos = [WriteCode(context=i, llm=self._llm) for i in changed_files.docs.values()]
+        self.code_todos = [
+            WriteCode(context=i, llm=self._llm) for i in changed_files.docs.values()
+        ]
         # Code directly modified by the user.
         dependency = await CONFIG.git_repo.get_dependency()
         for filename in changed_src_files:

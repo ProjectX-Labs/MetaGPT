@@ -67,17 +67,23 @@ class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput | Message:
+    async def run(
+        self, with_messages, format=CONFIG.prompt_format, *args, **kwargs
+    ) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
         # related to the PRD. If they are related, rewrite the PRD.
-        docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
+        docs_file_repo = CONFIG.git_repo.new_file_repository(
+            relative_path=DOCS_FILE_REPO
+        )
         requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
         if await self._is_bugfix(requirement_doc.content):
-            await docs_file_repo.save(filename=BUGFIX_FILENAME, content=requirement_doc.content)
+            await docs_file_repo.save(
+                filename=BUGFIX_FILENAME, content=requirement_doc.content
+            )
             await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
             bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
             return Message(
-                content=bug_fix.model_dump_json(),
+                content=bug_fix.json(),
                 instruct_content=bug_fix,
                 role="",
                 cause_by=FixBug,
@@ -92,7 +98,11 @@ class WritePRD(Action):
         change_files = Documents()
         for prd_doc in prd_docs:
             prd_doc = await self._update_prd(
-                requirement_doc=requirement_doc, prd_doc=prd_doc, prds_file_repo=prds_file_repo, *args, **kwargs
+                requirement_doc=requirement_doc,
+                prd_doc=prd_doc,
+                prds_file_repo=prds_file_repo,
+                *args,
+                **kwargs,
             )
             if not prd_doc:
                 continue
@@ -101,7 +111,11 @@ class WritePRD(Action):
         # If there is no existing PRD, generate one using 'docs/requirement.txt'.
         if not change_files.docs:
             prd_doc = await self._update_prd(
-                requirement_doc=requirement_doc, prd_doc=None, prds_file_repo=prds_file_repo, *args, **kwargs
+                requirement_doc=requirement_doc,
+                prd_doc=None,
+                prds_file_repo=prds_file_repo,
+                *args,
+                **kwargs,
             )
             if prd_doc:
                 change_files.docs[prd_doc.filename] = prd_doc
@@ -109,9 +123,11 @@ class WritePRD(Action):
         # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
         # 'publish' message to transition the workflow to the next stage. This design allows room for global
         # optimization in subsequent steps.
-        return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
+        return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
-    async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format) -> ActionOutput:
+    async def _run_new_requirement(
+        self, requirements, format=CONFIG.prompt_format
+    ) -> ActionOutput:
         # sas = SearchAndSummarize()
         # # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         # rsp = ""
@@ -120,38 +136,53 @@ class WritePRD(Action):
         #     logger.info(sas.result)
         #     logger.info(rsp)
         project_name = CONFIG.project_name if CONFIG.project_name else ""
-        context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
+        context = CONTEXT_TEMPLATE.format(
+            requirements=requirements, project_name=project_name
+        )
         node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, to=format)
         await self._rename_workspace(node)
         return node
 
     async def _is_relative(self, new_requirement_doc, old_prd_doc) -> bool:
-        context = NEW_REQ_TEMPLATE.format(old_prd=old_prd_doc.content, requirements=new_requirement_doc.content)
+        context = NEW_REQ_TEMPLATE.format(
+            old_prd=old_prd_doc.content, requirements=new_requirement_doc.content
+        )
         node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
         return node.get("is_relative") == "YES"
 
-    async def _merge(self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format) -> Document:
+    async def _merge(
+        self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format
+    ) -> Document:
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
-        prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
+        prompt = NEW_REQ_TEMPLATE.format(
+            requirements=new_requirement_doc.content, old_prd=prd_doc.content
+        )
         node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, to=format)
-        prd_doc.content = node.instruct_content.model_dump_json(ensure_ascii=False)
+        prd_doc.content = node.instruct_content.json(ensure_ascii=False)
         await self._rename_workspace(node)
         return prd_doc
 
-    async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
+    async def _update_prd(
+        self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs
+    ) -> Document | None:
         if not prd_doc:
-            prd = await self._run_new_requirement(requirements=[requirement_doc.content], *args, **kwargs)
+            prd = await self._run_new_requirement(
+                requirements=[requirement_doc.content], *args, **kwargs
+            )
             new_prd_doc = Document(
                 root_path=PRDS_FILE_REPO,
                 filename=FileRepository.new_filename() + ".json",
-                content=prd.instruct_content.model_dump_json(),
+                content=prd.instruct_content.json(),
+                
             )
         elif await self._is_relative(requirement_doc, prd_doc):
             new_prd_doc = await self._merge(requirement_doc, prd_doc)
         else:
             return None
-        await prds_file_repo.save(filename=new_prd_doc.filename, content=new_prd_doc.content)
+        await prds_file_repo.save(
+            filename=new_prd_doc.filename, content=new_prd_doc.content
+        )
         await self._save_competitive_analysis(new_prd_doc)
         await self._save_pdf(new_prd_doc)
         return new_prd_doc
@@ -163,7 +194,9 @@ class WritePRD(Action):
         if not quadrant_chart:
             return
         pathname = (
-            CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
+            CONFIG.git_repo.workdir
+            / Path(COMPETITIVE_ANALYSIS_FILE_REPO)
+            / Path(prd_doc.filename).with_suffix("")
         )
         if not pathname.parent.exists():
             pathname.parent.mkdir(parents=True, exist_ok=True)
@@ -171,11 +204,15 @@ class WritePRD(Action):
 
     @staticmethod
     async def _save_pdf(prd_doc):
-        await FileRepository.save_as(doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO)
+        await FileRepository.save_as(
+            doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO
+        )
 
     @staticmethod
     async def _rename_workspace(prd):
-        if CONFIG.project_path:  # Updating on the old version has already been specified if it's valid. According to
+        if (
+            CONFIG.project_path
+        ):  # Updating on the old version has already been specified if it's valid. According to
             # Section 2.2.3.10 of RFC 135
             if not CONFIG.project_name:
                 CONFIG.project_name = Path(CONFIG.project_path).name

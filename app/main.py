@@ -36,6 +36,7 @@ app = FastAPI(
 
 app.mount("/ws", manager.get_app())
 
+
 origins = ["*"]
 
 app.add_middleware(

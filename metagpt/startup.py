@@ -53,6 +53,8 @@ def startup(
     from metagpt.team import Team
 
     # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
+    # CONFIG.project_name = "beachhead"  # Setting project name to 'beachhead'
+    # CONFIG.project_path = Path.cwd() / "beachhead"  # Setting project path to a 'beachhead' directory in the current working directory
     CONFIG.project_name = "beachhead"  # Setting project name to 'beachhead'
     CONFIG.project_path = Path.cwd() / "beachhead"  # Setting project path to a 'beachhead' directory in the current working directory
     if project_path:

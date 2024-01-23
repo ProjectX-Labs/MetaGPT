@@ -163,7 +163,7 @@ class Message(BaseModel):
     def dump(self) -> str:
         """Convert the object to json string"""
         # return self.json(exclude_none=True)
-        return self.model_dump_json(exclude_none=True)
+        return self.json(exclude_none=True)
 
     @staticmethod
     def load(val):

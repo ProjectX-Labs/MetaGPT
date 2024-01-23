@@ -44,7 +44,9 @@ class Team(BaseModel):
 
     def _check_balance(self):
         if CONFIG.total_cost > CONFIG.max_budget:
-            raise NoMoneyException(CONFIG.total_cost, f"Insufficient funds: {CONFIG.max_budget}")
+            raise NoMoneyException(
+                CONFIG.total_cost, f"Insufficient funds: {CONFIG.max_budget}"
+            )
 
     def run_project(self, idea, send_to: str = ""):
         """Start a project from publishing user requirement."""
@@ -52,13 +54,19 @@ class Team(BaseModel):
 
         # Human requirement.
         self.env.publish_message(
-            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL)
+            Message(
+                role="Human",
+                content=idea,
+                cause_by=UserRequirement,
+                send_to=send_to or MESSAGE_ROUTE_TO_ALL,
+            )
         )
 
     def _save(self):
         logger.info(self.json(ensure_ascii=False))
 
     async def run(self, n_round=3):
+        print("Running...:\n\n", self.idea)
         """Run company until target round or no money"""
         while n_round > 0:
             # self._save()

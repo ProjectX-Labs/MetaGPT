@@ -221,7 +221,7 @@ class SessionModel:
 class StartupRequest(BaseModel):
     idea: str
     investment: float = 3.0
-    n_round: int = 5
+    n_round: int = 1
     code_review: bool = True
     run_tests: bool = False
     implement: bool = True
@@ -230,3 +230,8 @@ class StartupRequest(BaseModel):
     project_path: str = ""
     reqa_file: str = ""
     max_auto_summarize_code: int = -1
+
+
+class GenerationRequest(BaseModel):
+    idea: str
+    app_details: Optional[str] = None

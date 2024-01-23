@@ -33,7 +33,9 @@ def get_metagpt_root():
     project_root_env = os.getenv("METAGPT_PROJECT_ROOT")
     if project_root_env:
         project_root = Path(project_root_env)
-        logger.info(f"PROJECT_ROOT set from environment variable to {str(project_root)}")
+        logger.info(
+            f"PROJECT_ROOT set from environment variable to {str(project_root)}"
+        )
     else:
         # Fallback to package root if no environment variable is set
         project_root = get_metagpt_package_root()
@@ -44,7 +46,7 @@ def get_metagpt_root():
 
 METAGPT_ROOT = get_metagpt_root()
 DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
-BEACHHEAD_ROOT = DEFAULT_WORKSPACE_ROOT / "Beachhead"
+BEACHHEAD_ROOT = DEFAULT_WORKSPACE_ROOT / "beachhead"
 
 DATA_PATH = METAGPT_ROOT / "data"
 RESEARCH_PATH = DATA_PATH / "research"
