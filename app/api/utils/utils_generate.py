@@ -6,33 +6,29 @@ import shutil
 import os
 import asyncio
 import time
-from typing import Any, NoReturn
-
-from ...database import db
-import requests
+import logging
 from pathlib import Path
 from fastapi import APIRouter
 from pydantic import BaseModel
-from metagpt.roles import (
-    Architect,
-    Engineer,
-    ProductManager,
-    ProjectManager,
-    QaEngineer,
-)
-from metagpt.team import Team
-from metagpt.config import CONFIG
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from typing import Any, NoReturn
+
+from ...database import db
 from ...dependencies import get_current_user_id
 from ...models import StartupRequest
-from ...socket_config import sio, manager
-
 from ...socket_config import manager
+from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager, QaEngineer
+from metagpt.team import Team
+from metagpt.config import CONFIG
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, BEACHHEAD_ROOT
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Directory for user-specific code generation
+USER_CODE_ROOT = Path("/path/to/user_generated_code")
 
 async def startup(startup_request: StartupRequest):
+    # Configuration and team setup
     CONFIG.project_name = startup_request.project_name
     CONFIG.project_path = Path.cwd() / startup_request.project_name
     CONFIG.inc = startup_request.inc
@@ -42,8 +38,6 @@ async def startup(startup_request: StartupRequest):
     company = Team()
     company.hire([ProductManager(), Architect(), ProjectManager()])
 
-    print(startup_request.__str__)
-
     if startup_request.implement or startup_request.code_review:
         company.hire([Engineer(n_borg=5, use_code_review=startup_request.code_review)])
 
@@ -51,61 +45,50 @@ async def startup(startup_request: StartupRequest):
         company.hire([QaEngineer()])
 
     company.invest(startup_request.investment)
-    print("Startup Idea (Monkey)", startup_request.idea)
-    time.sleep(3)
-
     company.run_project(startup_request.idea)
-
     await company.run(n_round=startup_request.n_round)
 
-
-def read_beachhead_contents():
-    beachhead_path = DEFAULT_WORKSPACE_ROOT / "beachhead"
+def read_user_contents(user_path: Path):
     contents = {}
-    for file_path in beachhead_path.glob("**/*"):
+    for file_path in user_path.glob("**/*"):
         if file_path.is_file():
             with open(file_path, "r") as file:
                 contents[str(file_path)] = file.read()
     return contents
 
+def clear_user_contents(user_id: str):
+    user_path = Path(BEACHHEAD_ROOT, user_id)
+    if user_path.exists():
+        shutil.rmtree(user_path)
+        logger.info(f"User data for {user_id} has been cleaned up.")
+        
+# def clear_beachhead_contents():
+#     beachhead_path = BEACHHEAD_ROOT
+#     if beachhead_path.exists():
+#         shutil.rmtree(beachhead_path)
 
-def clear_beachhead_contents():
-    beachhead_path = DEFAULT_WORKSPACE_ROOT / "beachhead"
-    if beachhead_path.exists():
-        shutil.rmtree(beachhead_path)
+async def background_generation_process(startup_request: StartupRequest, user_id: str, aisession_id: str):
+    user_path = USER_CODE_ROOT / user_id
+    user_path.mkdir(parents=True, exist_ok=True)
 
-
-# Get the directory of the current script
-current_script_dir = os.path.dirname(os.path.abspath(__file__))
-print(current_script_dir)
-# Construct the path to the target file
-test_file_path = os.path.join(current_script_dir, "../test_idea_files/input.txt")
-print(test_file_path)
-
-
-async def background_generation_process(
-    startup_request: StartupRequest, user_id: str, aisession_id: str
-):
     await startup(startup_request)
-    code = read_beachhead_contents()
-    print(code)
+    code = read_user_contents(user_path)
 
-    # Save the code into a JSON file
-    with open('chaching.json', 'w') as f:
+    # Save the code and update the database
+    with open(user_path / 'code.json', 'w') as f:
         json.dump(code, f, indent=4)
 
-    # Update the database record for the AI session
-    process_results = await db["aisessions"].update_one(
-        {"_id": aisession_id},  # Assuming aisession_id is the _id in MongoDB
+    await db["aisessions"].update_one(
+        {"_id": aisession_id},
         {"$set": {"generated_data.code": code}},
     )
 
-    message = {
-        "aisession_id": aisession_id,
-        "status": "Completed",
-        "code": code,
-    }
-    print(message)
+    await manager.send_update(user_id, aisession_id, {"aisession_id": aisession_id, "status": "Completed", "code": code})
+    clear_user_contents(user_path)
 
-    # Send a socket notification
-    await manager.send_update(user_id, aisession_id, message)
+def secure_delete(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)
+        logger.info(f"Successfully deleted {path}")
+    else:
+        logger.error(f"Error while deleting {path}: Path does not exist")
