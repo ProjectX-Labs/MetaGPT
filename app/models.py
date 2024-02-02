@@ -218,7 +218,7 @@ class SessionModel:
         await self.collection.insert_one(session_data)
 
 
-class StartupRequest(BaseModel):
+class StartupRequest(MongoModel):
     idea: str
     investment: float = 3.0
     n_round: int = 1
@@ -232,10 +232,33 @@ class StartupRequest(BaseModel):
     max_auto_summarize_code: int = -1
 
 
-class GenerationRequest(BaseModel):
+class GenerationRequest(MongoModel):
     idea: str
     app_details: Optional[str] = None
 
+
+
+class Technology(MongoModel):
+    frameworks: List[str]
+    languages: List[str]
+
+class ProjectData(MongoModel):
+    technologies: Technology
+    capabilities: List[str]
+
+class SubmissionData(MongoModel):
+    prompt: str
+    isNewRepository: bool
+    technologies: Technology
+
+class Code(MongoModel):
+    filename: str
+    contents: str
+
+class GenerationData(MongoModel):
+    summary: str
+    tasks: str
+    code: List[Code]
 
 class Change(MongoModel):
     fileName: str
@@ -246,19 +269,6 @@ class GitData(MongoModel):
     commitId: str
     commitMessage: str
     changes: List[Change]
-
-class GenerationData(MongoModel):
-    summary: str
-    tasks: List[str]
-    code: str
-
-class SubmissionData(MongoModel):
-    prompt: str
-    tech: List[str]
-
-class ProjectData(MongoModel):
-    technologies: List[str]
-    capabilities: List[str]
 
 class MetaData(MongoModel):
     total_cost: int
