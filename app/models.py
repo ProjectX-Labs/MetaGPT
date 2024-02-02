@@ -149,7 +149,7 @@ RepoVisibility = Literal["public", "private"]
 class Repository(MongoModel):
     user_id: str
     name: Optional[str] = None
-    is_created_on_github: bool = False  # Is the repo created in GitHub
+    is_created_on_github: bool = False  # Is the repo created in GitHub2
     default_branch: str = "main"  # Default branch of the repo
     html_url: Optional[HttpUrl] = None  # URL of the repo
     url: Optional[HttpUrl] = None  # API URL of the repo
@@ -235,3 +235,40 @@ class StartupRequest(BaseModel):
 class GenerationRequest(BaseModel):
     idea: str
     app_details: Optional[str] = None
+
+
+class Change(MongoModel):
+    fileName: str
+    changeType: Union[Literal['A'], Literal['M'], Literal['D']]
+
+class GitData(MongoModel):
+    branch: str
+    commitId: str
+    commitMessage: str
+    changes: List[Change]
+
+class GenerationData(MongoModel):
+    summary: str
+    tasks: List[str]
+    code: str
+
+class SubmissionData(MongoModel):
+    prompt: str
+    tech: List[str]
+
+class ProjectData(MongoModel):
+    technologies: List[str]
+    capabilities: List[str]
+
+class MetaData(MongoModel):
+    total_cost: int
+    total_tasks: int
+    total_revisions: int
+    total_time: int
+
+class GenerationDataObject(MongoModel):
+    projectData: ProjectData
+    submissionData: SubmissionData
+    generationData: GenerationData
+    gitData: GitData
+    metaData: MetaData
