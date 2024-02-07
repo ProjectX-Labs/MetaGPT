@@ -16,7 +16,13 @@ from ...database import db
 from ...dependencies import get_current_user_id
 from ...models import StartupRequest
 from ...socket_config import manager
-from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager, QaEngineer
+from metagpt.roles import (
+    Architect,
+    Engineer,
+    ProductManager,
+    ProjectManager,
+    QaEngineer,
+)
 from metagpt.team import Team
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, BEACHHEAD_ROOT
@@ -27,15 +33,16 @@ router = APIRouter()
 # Directory for user-specific code generation
 USER_CODE_ROOT = Path("/path/to/user_generated_code")
 
-async def startup(startup_request: StartupRequest):
-    # Configuration and team setup
-    if startup_request.project_name:
-        CONFIG.project_name = startup_request.project_name
-    CONFIG.project_path = Path.cwd() / startup_request.project_name
-    CONFIG.inc = startup_request.inc
-    CONFIG.reqa_file = startup_request.reqa_file
-    CONFIG.max_auto_summarize_code = startup_request.max_auto_summarize_code
 
+async def startup(startup_request: StartupRequest):
+    # # Configuration and team setup
+    # if startup_request.project_name:
+    #     CONFIG.project_name = startup_request.project_name
+    # CONFIG.project_path = Path.cwd() / startup_request.project_name
+    # CONFIG.inc = startup_request.inc
+    # CONFIG.reqa_file = startup_request.reqa_file
+    # CONFIG.max_auto_summarize_code = startup_request.max_auto_summarize_code
+    print("Starting generation\n\n\n")
     company = Team()
     company.hire([ProductManager(), Architect(), ProjectManager()])
 
@@ -49,6 +56,7 @@ async def startup(startup_request: StartupRequest):
     company.run_project(startup_request.idea)
     await company.run(n_round=startup_request.n_round)
 
+
 def read_user_contents(user_path: Path):
     contents = {}
     for file_path in user_path.glob("**/*"):
@@ -57,27 +65,31 @@ def read_user_contents(user_path: Path):
                 contents[str(file_path)] = file.read()
     return contents
 
+
 def clear_user_contents(user_id: str):
     user_path = Path(BEACHHEAD_ROOT, user_id)
     if user_path.exists():
         shutil.rmtree(user_path)
         logger.info(f"User data for {user_id} has been cleaned up.")
-        
+
+
 # def clear_beachhead_contents():
 #     beachhead_path = BEACHHEAD_ROOT
 #     if beachhead_path.exists():
 #         shutil.rmtree(beachhead_path)
 
-async def background_generation_process(startup_request: StartupRequest, user_id: str, aisession_id: Optional[str]= None):
+
+async def background_generation_process(
+    startup_request: StartupRequest, user_id: str, aisession_id: Optional[str] = None
+):
     # user_path = USER_CODE_ROOT / user_id
     # user_path.mkdir(parents=True, exist_ok=True)
-    
-    if aisession_id == None:
-        aisession = await db["aisessions"].insert_one({"user_id": user_id, "status": "In Progress"})
-        aisession_id = aisession.inserted_id
-    
-    aisession = await db["aisessions"].find_one({"_id": aisession_id})
-        
+
+    # if aisession_id == None:
+    #     aisession = await db["aisessions"].insert_one({"user_id": user_id, "status": "In Progress"})
+    #     aisession_id = aisession.inserted_id
+
+    # aisession = await db["aisessions"].find_one({"_id": aisession_id})
 
     await startup(startup_request)
     # code = read_user_contents(user_path)
@@ -93,6 +105,8 @@ async def background_generation_process(startup_request: StartupRequest, user_id
 
     # await manager.send_update(user_id, aisession_id, {"aisession_id": aisession_id, "status": "Completed", "code": code})
     # clear_user_contents(user_path)
+    pass
+
 
 def secure_delete(path):
     if os.path.exists(path):
