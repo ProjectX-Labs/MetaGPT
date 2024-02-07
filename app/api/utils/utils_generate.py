@@ -43,6 +43,28 @@ async def startup(startup_request: StartupRequest):
     # CONFIG.reqa_file = startup_request.reqa_file
     # CONFIG.max_auto_summarize_code = startup_request.max_auto_summarize_code
     print("Starting generation\n\n\n")
+
+    #  # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
+    # CONFIG.project_name = "beachhead"  # Setting project name to 'beachhead'
+    # CONFIG.project_path = Path.cwd() / "beachhead"  # Setting project path to a 'beachhead' directory in the current working directory
+    # if project_path:
+    #     inc = True
+    #     project_name = project_name or Path(project_path).name
+    # CONFIG.project_name = project_name
+    # CONFIG.inc = inc
+    # CONFIG.reqa_file = reqa_file
+    # CONFIG.max_auto_summarize_code = max_auto_summarize_code
+
+    CONFIG.project_path = startup_request.project_path
+    if startup_request.project_path:
+        inc = True
+        # project_name = project_name or Path(startup_request.project_path).name
+        
+    CONFIG.project_name = startup_request.project_name
+    CONFIG.inc = startup_request.inc
+    CONFIG.reqa_file = startup_request.reqa_file
+    CONFIG.max_auto_summarize_code = startup_request.max_auto_summarize_code
+
     company = Team()
     company.hire([ProductManager(), Architect(), ProjectManager()])
 
