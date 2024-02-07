@@ -10,7 +10,7 @@ import logging
 from pathlib import Path
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Any, NoReturn
+from typing import Any, NoReturn, Optional
 
 from ...database import db
 from ...dependencies import get_current_user_id
@@ -68,24 +68,31 @@ def clear_user_contents(user_id: str):
 #     if beachhead_path.exists():
 #         shutil.rmtree(beachhead_path)
 
-async def background_generation_process(startup_request: StartupRequest, user_id: str, aisession_id: str):
-    user_path = USER_CODE_ROOT / user_id
-    user_path.mkdir(parents=True, exist_ok=True)
+async def background_generation_process(startup_request: StartupRequest, user_id: str, aisession_id: Optional[str]= None):
+    # user_path = USER_CODE_ROOT / user_id
+    # user_path.mkdir(parents=True, exist_ok=True)
+    
+    if aisession_id == None:
+        aisession = await db["aisessions"].insert_one({"user_id": user_id, "status": "In Progress"})
+        aisession_id = aisession.inserted_id
+    
+    aisession = await db["aisessions"].find_one({"_id": aisession_id})
+        
 
     await startup(startup_request)
-    code = read_user_contents(user_path)
+    # code = read_user_contents(user_path)
 
     # Save the code and update the database
-    with open(user_path / 'code.json', 'w') as f:
-        json.dump(code, f, indent=4)
+    # with open(user_path / 'code.json', 'w') as f:
+    #     json.dump(code, f, indent=4)
 
-    await db["aisessions"].update_one(
-        {"_id": aisession_id},
-        {"$set": {"generated_data.code": code}},
-    )
+    # await db["aisessions"].update_one(
+    #     {"_id": aisession_id},
+    #     {"$set": {"generated_data.code": code}},
+    # )
 
-    await manager.send_update(user_id, aisession_id, {"aisession_id": aisession_id, "status": "Completed", "code": code})
-    clear_user_contents(user_path)
+    # await manager.send_update(user_id, aisession_id, {"aisession_id": aisession_id, "status": "Completed", "code": code})
+    # clear_user_contents(user_path)
 
 def secure_delete(path):
     if os.path.exists(path):

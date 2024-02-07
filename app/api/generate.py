@@ -1,4 +1,5 @@
 # generate.py
+import json
 import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -23,24 +24,25 @@ async def generate_mvp(
 ):
     try:
         # Combine the data into one string
-        combined_idea_parts = [
-            generation_data.projectName or "",
-            generation_data.idea,
-            generation_data.appType,
-            ", ".join(generation_data.technology),
-            generation_data.additionalDetails or "",
-        ]
-        combined_idea = " | ".join(
-            filter(None, combined_idea_parts)
-        )  # Filters out empty strings
+        combined_idea = json.dumps(generation_data.dict())
+        # combined_idea_parts = [
+        #     generation_data.projectName or "",
+        #     generation_data.idea,
+        #     generation_data.appType,
+        #     ", ".join(generation_data.technology),
+        #     generation_data.additionalDetails or "",
+        # ]
+        # combined_idea = " | ".join(
+        #     filter(None, combined_idea_parts)
+        # )  # Filters out empty strings
         
         
         print(combined_idea)
-        # generationRequest = StartupRequest(idea=combined_idea)
+        generationRequest = StartupRequest(idea=combined_idea)
 
-        # background_tasks.add_task(
-        #     background_generation_process, generationRequest, user_id
-        # )
+        background_tasks.add_task(
+            background_generation_process, generationRequest, user_id
+        )
         # Return a standardized JSON response with a status code
         return JSONResponse(
             status_code=202,  # 202 Accepted is often used for async operations

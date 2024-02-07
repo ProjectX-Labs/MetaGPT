@@ -225,7 +225,7 @@ class StartupRequest(MongoModel):
     code_review: bool = True
     run_tests: bool = False
     implement: bool = True
-    project_name: str = "beachhead"
+    project_name: str = ""
     inc: bool = False
     project_path: str = ""
     reqa_file: str = ""
