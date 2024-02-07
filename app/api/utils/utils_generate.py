@@ -29,7 +29,8 @@ USER_CODE_ROOT = Path("/path/to/user_generated_code")
 
 async def startup(startup_request: StartupRequest):
     # Configuration and team setup
-    CONFIG.project_name = startup_request.project_name
+    if startup_request.project_name:
+        CONFIG.project_name = startup_request.project_name
     CONFIG.project_path = Path.cwd() / startup_request.project_name
     CONFIG.inc = startup_request.inc
     CONFIG.reqa_file = startup_request.reqa_file

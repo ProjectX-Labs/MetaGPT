@@ -233,36 +233,44 @@ class StartupRequest(MongoModel):
 
 
 class GenerationRequest(MongoModel):
+    projectName: Optional[str]
     idea: str
-    app_details: Optional[str] = None
-
+    appType: str
+    technology: ["django"]
+    additionalDetails: Optional[str]
 
 
 class Technology(MongoModel):
     frameworks: List[str]
     languages: List[str]
 
+
 class ProjectData(MongoModel):
     technologies: Technology
     capabilities: List[str]
+
 
 class SubmissionData(MongoModel):
     prompt: str
     isNewRepository: bool
     technologies: Technology
 
+
 class Code(MongoModel):
     filename: str
     contents: str
+
 
 class GenerationData(MongoModel):
     summary: str
     tasks: str
     code: List[Code]
 
+
 class Change(MongoModel):
     fileName: str
-    changeType: Union[Literal['A'], Literal['M'], Literal['D']]
+    changeType: Union[Literal["A"], Literal["M"], Literal["D"]]
+
 
 class GitData(MongoModel):
     branch: str
@@ -270,11 +278,13 @@ class GitData(MongoModel):
     commitMessage: str
     changes: List[Change]
 
+
 class MetaData(MongoModel):
     total_cost: int
     total_tasks: int
     total_revisions: int
     total_time: int
+
 
 class GenerationDataObject(MongoModel):
     projectData: ProjectData

@@ -1,0 +1,39 @@
+
+Generation Data Object {
+    projectData:{
+        technologies: {
+            frameworks: [""]
+            languages: [""]
+        }
+        capabilities: []
+    }
+    submissionData:{
+        prompt
+        isNewRepository: boolean
+        technologies: {
+            frameworks: [""]
+            languages: [""]
+        }
+    }
+    generationData:{
+        summary
+        tasks
+        code:[{ filename: <file name>, contents: <file contents>},
+        { filename: <file name>, contents: <file contents>}]
+    }
+    gitData:{
+        branch
+        commitId
+        commitMessage
+        changes: [
+            fileName
+            changeType - A, M, or D
+        ]
+    }
+    metaData:{
+        total_cost
+        total_tasks
+        total_revisions
+        total_time
+    }
+}
