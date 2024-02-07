@@ -236,7 +236,7 @@ class GenerationRequest(MongoModel):
     projectName: Optional[str]
     idea: str
     appType: str
-    technology: ["django"]
+    technology: List[str]
     additionalDetails: Optional[str]
 
 

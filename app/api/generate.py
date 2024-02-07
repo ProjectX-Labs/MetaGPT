@@ -33,11 +33,14 @@ async def generate_mvp(
         combined_idea = " | ".join(
             filter(None, combined_idea_parts)
         )  # Filters out empty strings
-        generationRequest = StartupRequest(idea=combined_idea)
+        
+        
+        print(combined_idea)
+        # generationRequest = StartupRequest(idea=combined_idea)
 
-        background_tasks.add_task(
-            background_generation_process, generationRequest, user_id
-        )
+        # background_tasks.add_task(
+        #     background_generation_process, generationRequest, user_id
+        # )
         # Return a standardized JSON response with a status code
         return JSONResponse(
             status_code=202,  # 202 Accepted is often used for async operations
