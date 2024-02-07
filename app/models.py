@@ -221,7 +221,7 @@ class SessionModel:
 class StartupRequest(MongoModel):
     idea: str
     investment: float = 3.0
-    n_round: int = 1
+    n_round: int = 2
     code_review: bool = True
     run_tests: bool = False
     implement: bool = True
