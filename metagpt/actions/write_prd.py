@@ -183,8 +183,8 @@ class WritePRD(Action):
         await prds_file_repo.save(
             filename=new_prd_doc.filename, content=new_prd_doc.content
         )
-        await self._save_competitive_analysis(new_prd_doc)
-        await self._save_pdf(new_prd_doc)
+        # await self._save_competitive_analysis(new_prd_doc)
+        # await self._save_pdf(new_prd_doc)
         return new_prd_doc
 
     @staticmethod

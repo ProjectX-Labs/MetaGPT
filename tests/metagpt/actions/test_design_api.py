@@ -28,3 +28,25 @@ async def test_design_api():
         logger.info(result)
 
         assert result
+import json
+from pathlib import Path
+import pytest
+from metagpt.actions.design_api import WriteDesign
+from metagpt.const import DATA_API_DESIGN_FILE_REPO
+from metagpt.logs import logger
+from metagpt.schema import Message
+from metagpt.utils.file_repository import FileRepository
+from tests.metagpt.actions.mock import PRD_SAMPLE
+
+@pytest.mark.asyncio
+async def test_save_data_api_design():
+    design_doc = Message(content='{"Data structures and interfaces": "API design content"}', filename='api_design.txt')
+    await WriteDesign._save_data_api_design(design_doc)
+    
+    # Verify that the data API design file is saved correctly
+    expected_pathname = Path('/path/to/repo') / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
+    assert expected_pathname.exists()
+    
+    # Verify that the logger has logged the correct message
+    expected_log_message = f"Save class view to {str(expected_pathname)}"
+    assert logger.messages[-1] == expected_log_message
