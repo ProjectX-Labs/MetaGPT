@@ -83,8 +83,18 @@ def read_user_contents(user_path: Path):
     contents = {}
     for file_path in user_path.glob("**/*"):
         if file_path.is_file():
-            with open(file_path, "r") as file:
-                contents[str(file_path)] = file.read()
+            try:
+                # Attempt to read and decode as UTF-8
+                with open(file_path, "r", encoding="utf-8") as file:
+                    contents[str(file_path)] = file.read()
+            except UnicodeDecodeError:
+                # If UTF-8 decoding fails, read as binary
+                try:
+                    with open(file_path, "rb") as file:
+                        contents[str(file_path)] = file.read().decode("utf-8", "ignore")
+                except Exception as e:
+                    print(f"Error reading {file_path}: {e}")
+                    # Optionally, handle other exceptions or skip file
     return contents
 
 
